@@ -1,4 +1,5 @@
 node_modules/
 out/
-vscode-jsonnet-*.vsix
+*.vsix
 .vscode
+.direnv

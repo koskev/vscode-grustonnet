@@ -14,11 +14,11 @@ const ComponentDetails: Record<
   }
 > = {
   languageServer: {
-    binaryName: 'jsonnet-language-server',
+    binaryName: 'grustonnet-ls',
     displayName: 'language server',
   },
   debugger: {
-    binaryName: 'jsonnet-debugger',
+    binaryName: 'grustonnet-debugger',
     displayName: 'debugger',
   },
 };
@@ -29,7 +29,7 @@ export async function install(
   component: Component
 ): Promise<string | null> {
   const { binaryName, displayName } = ComponentDetails[component];
-  let binPath: string = workspace.getConfiguration('jsonnet').get(`${component}.pathToBinary`);
+  let binPath: string = workspace.getConfiguration('grustonnet').get(`${component}.pathToBinary`);
   const isCustomBinPath = binPath !== undefined && binPath !== null && binPath !== '';
   if (!isCustomBinPath) {
     channel.appendLine(`Not using custom binary path. Using default path for ${component}`);
@@ -49,16 +49,16 @@ export async function install(
     }
   }
 
-  const releaseRepository: string = workspace.getConfiguration('jsonnet').get(`${component}.releaseRepository`);
+  const releaseRepository: string = workspace.getConfiguration('grustonnet').get(`${component}.releaseRepository`);
 
   const binPathExists = fs.existsSync(binPath);
   channel.appendLine(`Binary path is ${binPath} (exists: ${binPathExists})`);
 
   // Without auto-update, the process ends here.
-  const enableAutoUpdate: boolean = workspace.getConfiguration('jsonnet').get(`${component}.enableAutoUpdate`);
+  const enableAutoUpdate: boolean = workspace.getConfiguration('grustonnet').get(`${component}.enableAutoUpdate`);
   if (!enableAutoUpdate) {
     if (!binPathExists) {
-      const msg = `The jsonnet ${displayName} binary does not exist, please set either 'jsonnet.${component}.pathToBinary' or 'jsonnet.${component}.enableAutoUpdate'`;
+      const msg = `The jsonnet ${displayName} binary does not exist, please set either 'grustonnet.${component}.pathToBinary' or 'grustonnet.${component}.enableAutoUpdate'`;
       channel.appendLine(msg);
       window.showErrorMessage(msg);
       return null;
@@ -191,12 +191,12 @@ export async function install(
 
 function download(uri, filename) {
   return new Promise((resolve, reject) => {
-    const onError = function (e) {
+    const onError = function(e) {
       fs.unlinkSync(filename);
       reject(e);
     };
     https
-      .get(uri, function (response) {
+      .get(uri, function(response) {
         if (response.statusCode >= 200 && response.statusCode < 300) {
           const fileStream = fs.createWriteStream(filename);
           fileStream.on('error', onError);
@@ -216,7 +216,7 @@ function githubApiRequest(url: string, options: https.RequestOptions = {}, encod
   if (options.headers === undefined) {
     options.headers = {};
   }
-  options.headers['User-Agent'] = 'vscode-jsonnet';
+  options.headers['User-Agent'] = 'vscode-grustonnet';
   return new Promise((resolve, reject) => {
     https
       .request(url, options, (res) => {
