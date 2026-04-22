@@ -17,6 +17,19 @@
     };
     import-tree.url = "github:vic/import-tree";
     nix-actions.url = "github:koskev/nix-actions";
+    grustonnet = {
+      url = "github:koskev/grustonnet-ls";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+  };
+  nixConfig = {
+    extra-substituters = [
+      "https://koskev.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "koskev.cachix.org-1:1EexePRC9DgMPKI01zWTxM9YRIWHBbev15hTUE6h50I="
+    ];
   };
 
   outputs =
