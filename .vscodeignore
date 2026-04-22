@@ -3,3 +3,5 @@
 .eslintignore
 README.md
 **/README.md
+result/
+.direnv/

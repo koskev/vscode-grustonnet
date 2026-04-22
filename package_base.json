@@ -1,0 +1,210 @@
+{
+  "name": "vscode-grustonnet",
+  "icon": "icon.png",
+  "displayName": "Grustonnet Language Server",
+  "description": "Full code support (formatting, highlighting, navigation, debugging etc) for Jsonnet",
+  "license": "AGPL 3.0",
+  "publisher": "koskev",
+  "version": "0.7.4",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/koskev/vscode-grustonnet"
+  },
+  "engines": {
+    "vscode": "^1.61.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Formatters",
+    "Debuggers"
+  ],
+  "keywords": [
+    "jsonnet",
+    "lsp",
+    "language",
+    "debugger"
+  ],
+  "activationEvents": [
+    "onLanguage:jsonnet"
+  ],
+  "main": "./out/extension",
+  "contributes": {
+    "menus": {
+      "editor/context": [
+        {
+          "command": "grustonnet.evalItem",
+          "group": "navigation",
+          "when": "false"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "grustonnet.evalFile",
+          "group": "navigation",
+          "when": "resourceLangId == jsonnet"
+        }
+      ],
+      "editor/title/run": [
+        {
+          "command": "grustonnet.debugEditorContents",
+          "when": "resourceLangId == jsonnet",
+          "group": "navigation@1"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "grustonnet.evalItem",
+        "title": "Jsonnet: Evaluate Item",
+        "enablement": "false"
+      },
+      {
+        "command": "grustonnet.evalFile",
+        "title": "Jsonnet: Evaluate File",
+        "enablement": "resourceLangId == jsonnet",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "grustonnet.evalFileYaml",
+        "title": "Jsonnet: Evaluate File (YAML)",
+        "enablement": "resourceLangId == jsonnet",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "grustonnet.evalExpression",
+        "title": "Jsonnet: Evaluate Expression",
+        "enablement": "resourceLangId == jsonnet"
+      },
+      {
+        "command": "grustonnet.evalExpressionYaml",
+        "title": "Jsonnet: Evaluate Expression (YAML)",
+        "enablement": "resourceLangId == jsonnet"
+      },
+      {
+        "command": "grustonnet.restartLanguageServer",
+        "title": "Jsonnet: Restart Language Server"
+      },
+      {
+        "command": "grustonnet.debugEditorContents",
+        "title": "Jsonnet: Debug File",
+        "category": "Jsonnet",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
+      }
+    ],
+    "languages": [
+      {
+        "id": "jsonnet",
+        "aliases": [
+          "Jsonnet",
+          "jsonnet"
+        ],
+        "extensions": [
+          ".jsonnet",
+          ".libsonnet"
+        ],
+        "configuration": "./language/configuration.jsonc"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "jsonnet",
+        "scopeName": "source.jsonnet",
+        "path": "./language/jsonnet.tmLanguage.json"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "jsonnet"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "jsonnet",
+        "languages": [
+          "jsonnet"
+        ],
+        "label": "Jsonnet Debugger",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program",
+              "jpaths"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "jsonnet script to run"
+              },
+              "jpaths": {
+                "type": "array",
+                "description": "jsonnet search paths",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "initialConfigurations": [],
+        "configurationSnippets": [
+          {
+            "label": "Jsonnet: Debug current file",
+            "description": "A new configuration for debugging a Jsonnet file.",
+            "body": {
+              "type": "jsonnet",
+              "request": "launch",
+              "name": "Debug current JSONNET file",
+              "program": "^\"\\${file}\""
+            }
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Grustonnet Plugin Settings",
+      "properties": {
+        "grustonnet.languageServer.releaseRepository": {
+          "type": "string",
+          "default": "koskev/grustonnet-ls",
+          "description": "Github repository to download the language server from"
+        },
+        "grustonnet.languageServer.enableAutoUpdate": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true
+        },
+        "grustonnet.languageServer.pathToBinary": {
+          "scope": "resource",
+          "type": "string",
+          "description": "Path to language server binary"
+        },
+        "grustonnet.debugger.pathToBinary": {
+          "scope": "resource",
+          "type": "string",
+          "description": "Path to debugger"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@types/vscode": "^1.69.0",
+    "vscode-languageclient": "^8.0.0",
+    "yaml": "^1.10.2"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.0",
+    "@typescript-eslint/eslint-plugin": "^4.23.0",
+    "@typescript-eslint/parser": "^4.23.0",
+    "eslint": "^7.26.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "lint": "eslint ./src --ext .ts,.tsx"
+  }
+}
