@@ -6,8 +6,8 @@ Uses <https://github.com/koskev/grustonnet-ls> as a language server. See that pr
 
 ## License
 
-The original work is licensed under the [Apache-2.0](./LICENSES/Apache-2.0.txt) license. All modifications after that are licensed under the
-AGPL-3.0+
+The original work is licensed under the [Apache-2.0](./LICENSES/Apache-2.0.txt) license. All modifications in this for licensed under the
+LGPL-3.0+
 
 ## Additional Features (over the language server)
 
