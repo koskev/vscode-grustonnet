@@ -1,6 +1,5 @@
 {
   "name": "vscode-grustonnet",
-  "icon": "icon.png",
   "displayName": "Grustonnet Language Server",
   "description": "Full code support (formatting, highlighting, navigation, debugging etc) for Jsonnet",
   "license": "AGPL 3.0",
