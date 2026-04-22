@@ -5,7 +5,6 @@ import { execFileSync } from 'child_process';
 import * as path from 'path';
 import { parseTar } from 'tarparser';
 import * as pako from 'pako';
-import { ChangeAnnotation } from 'vscode-languageclient';
 
 export type Component = 'languageServer' | 'debugger';
 

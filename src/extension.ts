@@ -46,7 +46,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     debug.registerDebugConfigurationProvider(
       'jsonnet',
       {
-        provideDebugConfigurations(folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
+        provideDebugConfigurations(_folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
           return [
             {
               name: 'Debug current Jsonnet file',
@@ -55,6 +55,21 @@ export async function activate(context: ExtensionContext): Promise<void> {
               program: '${file}',
             },
           ];
+        },
+        async resolveDebugConfiguration(_folder, debugConfiguration, _token) {
+          const params: ExecuteCommandParams = {
+            command: "config.jpaths",
+          };
+          debugConfiguration.jpaths = await client.sendRequest(ExecuteCommandRequest.type, params);
+          params.command = "config.extvars";
+          debugConfiguration.extvars = await client.sendRequest(ExecuteCommandRequest.type, params);
+          params.command = "config.extcode";
+          debugConfiguration.extcode = await client.sendRequest(ExecuteCommandRequest.type, params);
+
+          channel.appendLine(`Starting debugger with ${JSON.stringify(debugConfiguration)}`)
+
+          return debugConfiguration
+
         },
       },
       DebugConfigurationProviderTriggerKind.Dynamic
