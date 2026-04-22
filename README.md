@@ -4,6 +4,11 @@ Full code support (formatting, highlighting, navigation, etc) for Jsonnet
 
 Uses <https://github.com/koskev/grustonnet> as a language server. See that project's readme for information about its features
 
+## License
+
+The original work is licensed under the [Apache-2.0](./LICENSES/Apache-2.0.txt) license. All modifications after that are licensed under the
+AGPL-3.0+
+
 ## Additional Features (over the language server)
 
 ### Auto-update
