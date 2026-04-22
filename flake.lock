@@ -607,11 +607,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1776103478,
-        "narHash": "sha256-a9zx0x6q3R5PHcsxcr2Pc4zosVnjveXHsaZvXI49/Eo=",
+        "lastModified": 1776893273,
+        "narHash": "sha256-fdoSE16aFgVE2JLNV1E6iS0F/cLwt60f5aYYEUdmhFw=",
         "owner": "koskev",
         "repo": "nix-actions",
-        "rev": "806d1b5caefb4d6d792a21a2a67df4d901fff70d",
+        "rev": "03a92d5187b09364781ddb5e46225ed8f3886c09",
         "type": "github"
       },
       "original": {

@@ -3,6 +3,8 @@
 let
   inherit (inputs.nix-actions.lib) actions;
   inherit (inputs.nix-actions.lib) steps;
+  inherit (inputs.nix-actions.lib) mkBuild;
+  inherit (inputs.nix-actions.lib) platforms;
 in
 {
   imports = [ inputs.actions-nix.flakeModules.default ];
@@ -14,6 +16,10 @@ in
       };
     };
     workflows = {
+      ".github/workflows/build.yaml" = mkBuild {
+        targetPlatforms = [ platforms.linux ];
+      };
+
       ".github/workflows/release.yaml" = {
         on = {
           push.tags = [ "v*" ];
@@ -48,23 +54,8 @@ in
             steps = [
               steps.checkout
               steps.installNix
-              {
-                name = "Generate Version";
-                run = ''
-                  GITHUB_TAG_NAME=''${{ github.ref_name }}
-                  TAG_NAME=''${GITHUB_TAG_NAME:-v0.0.0}
-                  TAG_VERSION=''${TAG_NAME: 1}
-                  echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
-                '';
-              }
-              {
-                name = "Get changelog";
-                uses = actions.download-artifact;
-                "with" = {
-                  name = "changelog";
-                  path = "changelog";
-                };
-              }
+              steps.exportVersion
+              steps.downloadChangelog
               {
                 name = "Build";
                 run = ''
