@@ -55,31 +55,10 @@
     },
     "commands": [
       {
-        "command": "grustonnet.evalItem",
-        "title": "Jsonnet: Evaluate Item",
-        "enablement": "false"
-      },
-      {
         "command": "grustonnet.evalFile",
-        "title": "Jsonnet: Evaluate File",
+        "title": "Grustonnet: Evaluate File",
         "enablement": "resourceLangId == jsonnet",
         "icon": "$(open-preview)"
-      },
-      {
-        "command": "grustonnet.evalFileYaml",
-        "title": "Jsonnet: Evaluate File (YAML)",
-        "enablement": "resourceLangId == jsonnet",
-        "icon": "$(open-preview)"
-      },
-      {
-        "command": "grustonnet.evalExpression",
-        "title": "Jsonnet: Evaluate Expression",
-        "enablement": "resourceLangId == jsonnet"
-      },
-      {
-        "command": "grustonnet.evalExpressionYaml",
-        "title": "Jsonnet: Evaluate Expression (YAML)",
-        "enablement": "resourceLangId == jsonnet"
       },
       {
         "command": "grustonnet.restartLanguageServer",
@@ -192,10 +171,13 @@
   "dependencies": {
     "@types/vscode": "^1.69.0",
     "vscode-languageclient": "^8.0.0",
-    "yaml": "^1.10.2"
+    "yaml": "^1.10.2",
+    "pako": "^2.1.0",
+    "tarparser": "^0.0.5"
   },
   "devDependencies": {
     "@types/node": "^12.12.0",
+    "@types/pako": "^2.0.4",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
     "eslint": "^7.26.0",

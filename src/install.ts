@@ -3,6 +3,9 @@ import * as https from 'https';
 import * as fs from 'fs';
 import { execFileSync } from 'child_process';
 import * as path from 'path';
+import { parseTar } from 'tarparser';
+import * as pako from 'pako';
+import { ChangeAnnotation } from 'vscode-languageclient';
 
 export type Component = 'languageServer' | 'debugger';
 
@@ -122,7 +125,7 @@ export async function install(
       // Check the version
       let currentVersion = '';
       const result = execFileSync(binPath, ['--version']);
-      const prefix = `${binaryName} version `;
+      const prefix = `${binaryName} `;
       if (result.toString().startsWith(prefix)) {
         currentVersion = result.toString().substring(prefix.length).trim();
       } else {
@@ -156,9 +159,8 @@ export async function install(
 
     let platform = process.platform.toString();
     const arch = {
-      arm: 'armv7',
-      arm64: 'arm64',
-      x64: 'amd64',
+      arm64: 'aarch64',
+      x64: 'x86_64',
     }[process.arch];
     let suffix = '';
     if (platform === 'win32') {
@@ -166,11 +168,22 @@ export async function install(
       suffix = '.exe';
     }
 
-    const url = `https://github.com/${releaseRepository}/releases/download/v${latestVersion}/${binaryName}_${latestVersion}_${platform}_${arch}${suffix}`;
+    const url = `https://github.com/${releaseRepository}/releases/download/v${latestVersion}/grustonnet_${platform}_${arch}.tar.gz`;
     channel.appendLine(`Downloading ${url}`);
 
     try {
-      await download(url, binPath);
+      const buffer = await download(url);
+      const decompressed = pako.inflate(buffer);
+      const tarfile = await parseTar(decompressed);
+
+      for (const file of tarfile) {
+        const filePath = `${path.dirname(binPath)}/${file.name}`;
+        await fs.promises.unlink(filePath).catch((e: any) => { if (e.code !== "ENOENT") throw e; });
+        channel.appendLine(`Deleted old ${filePath}`);
+        await fs.promises.writeFile(filePath, file.data);
+        channel.appendLine(`Wrote ${filePath}`);
+        await fs.promises.chmod(filePath, file.attrs.mode);
+      }
       fs.chmodSync(binPath, 0o777);
     } catch (e) {
       const msg = `Failed to download ${url} to ${binPath}`;
@@ -186,24 +199,29 @@ export async function install(
     channel.appendLine(`Not updating the ${displayName}.`);
   }
 
+  channel.appendLine(`Binary is at ${binPath}`);
+
   return binPath;
 }
 
-function download(uri, filename) {
+function download(uri: any): Promise<Uint8Array> {
   return new Promise((resolve, reject) => {
-    const onError = function(e) {
-      fs.unlinkSync(filename);
+    const onError = function(e: any) {
       reject(e);
     };
     https
       .get(uri, function(response) {
         if (response.statusCode >= 200 && response.statusCode < 300) {
-          const fileStream = fs.createWriteStream(filename);
-          fileStream.on('error', onError);
-          fileStream.on('close', resolve);
-          response.pipe(fileStream);
+          const chunks: Buffer[] = [];
+          response.on("data", (chunk: Buffer) => {
+            chunks.push(chunk);
+          });
+          response.on("end", () => {
+            const buffer = Buffer.concat(chunks);
+            resolve(new Uint8Array(buffer));
+          });
         } else if (response.headers.location) {
-          resolve(download(response.headers.location, filename));
+          resolve(download(response.headers.location));
         } else {
           reject(new Error(response.statusCode + ' ' + response.statusMessage));
         }

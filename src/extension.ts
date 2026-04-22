@@ -36,7 +36,7 @@ let channel: OutputChannel;
 const evalFileName = 'jsonnet-eval-result';
 
 export async function activate(context: ExtensionContext): Promise<void> {
-  channel = window.createOutputChannel('Jsonnet');
+  channel = window.createOutputChannel('grustonnet plugin');
   extensionContext = context;
 
   await startClient();
@@ -59,7 +59,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       },
       DebugConfigurationProviderTriggerKind.Dynamic
     ),
-    commands.registerCommand('jsonnet.debugEditorContents', (resource: Uri) => {
+    commands.registerCommand('grustonnet.debugEditorContents', (resource: Uri) => {
       let targetResource = resource;
       if (!targetResource && window.activeTextEditor) {
         targetResource = window.activeTextEditor.document.uri;
@@ -77,44 +77,24 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(
     workspace.onDidChangeConfiguration(didChangeConfigHandler),
-    commands.registerCommand('jsonnet.restartLanguageServer', async function (): Promise<void> {
+    commands.registerCommand('grustonnet.restartLanguageServer', async function(): Promise<void> {
       await client.stop();
       client.outputChannel.dispose();
       await startClient();
       await didChangeConfigHandler();
     }),
-    commands.registerCommand('jsonnet.evalItem', async () => {
-      // Not enabled for now, because the language server doesn't support it.
-      const editor = window.activeTextEditor;
-      const params: ExecuteCommandParams = {
-        command: `jsonnet.evalItem`,
-        arguments: [evalFilePath(editor), editor.selection.active],
-      };
-      const tempFile = createTmpFile(false);
-      evalJsonnet(params, false, tempFile, true);
-    }),
-    commands.registerCommand('jsonnet.evalFile', evalCommand(false)),
-    commands.registerCommand('jsonnet.evalFileYaml', evalCommand(true)),
-    commands.registerCommand('jsonnet.evalExpression', evalCommand(false, true)),
-    commands.registerCommand('jsonnet.evalExpressionYaml', evalCommand(true, true))
+    commands.registerCommand('grustonnet.evalFile', evalCommand(false)),
   );
 }
 
-function evalCommand(yaml: boolean, promptExpr = false) {
+function evalCommand(yaml: boolean) {
   return async () => {
-    let expr = '';
-    if (promptExpr) {
-      expr = await window.showInputBox({ prompt: 'Expression to evaluate' });
-      if (expr === undefined || expr === '') {
-        window.showErrorMessage('No expression provided');
-        return;
-      }
-    }
 
     const currentFilePath = evalFilePath(window.activeTextEditor);
+    channel.appendLine(`Evaluating ${currentFilePath}`);
     const params: ExecuteCommandParams = {
-      command: expr === '' ? `jsonnet.evalFile` : `jsonnet.evalExpression`,
-      arguments: [currentFilePath].concat(expr === '' ? [] : [expr]),
+      command: `jsonnet.evalFile`,
+      arguments: [currentFilePath]
     };
 
     // Close previous result tab (named jsonnet-eval-result)
@@ -131,7 +111,7 @@ function evalCommand(yaml: boolean, promptExpr = false) {
 
     fs.writeFileSync(tempFile, '"Evaluating..."');
 
-    if (workspace.getConfiguration('jsonnet').get('languageServer.continuousEval') === false) {
+    if (workspace.getConfiguration('grustonnet').get('languageServer.continuousEval') === false) {
       evalJsonnet(params, yaml, tempFile, true);
     } else {
       // Initial eval
@@ -224,21 +204,15 @@ async function installDebugger(context: ExtensionContext): Promise<void> {
 }
 
 async function startClient(): Promise<void> {
-  const args: string[] = ['--log-level', workspace.getConfiguration('jsonnet').get('languageServer.logLevel')];
-  if (workspace.getConfiguration('jsonnet').get('languageServer.tankaMode') === true) {
-    args.push('--tanka');
-  }
-  if (workspace.getConfiguration('jsonnet').get('languageServer.lint') === true) {
-    args.push('--lint');
-  }
 
   const binPath = await install(extensionContext, channel, 'languageServer');
   if (!binPath) {
+    channel.appendLine("Binpath is empty. Not starting language server")
     return;
   }
   const executable: Executable = {
     command: binPath,
-    args: args,
+    args: [],
     options: {
       env: process.env,
     },
@@ -257,27 +231,15 @@ async function startClient(): Promise<void> {
   };
 
   // Create the language client and start the client.
-  client = new LanguageClient('jsonnetLanguageServer', 'Jsonnet Language Server', serverOptions, clientOptions);
+  client = new LanguageClient('grustonnetLanguageServer', 'Grustonnet Language Server', serverOptions, clientOptions);
 
   // Start the client. This will also launch the server
   client.start();
 }
 
 async function didChangeConfigHandler() {
-  const workspaceConfig = workspace.getConfiguration('jsonnet');
-  let jpath: string[] = workspaceConfig.get('languageServer.jpath');
-  jpath = jpath.map((p) => (path.isAbsolute(p) ? p : path.join(workspace.workspaceFolders[0].uri.fsPath, p)));
+  const workspaceConfig = workspace.getConfiguration('grustonnet');
   client.sendNotification(DidChangeConfigurationNotification.type, {
-    settings: {
-      log_level: workspaceConfig.get('languageServer.logLevel'),
-      ext_vars: workspaceConfig.get('languageServer.extVars'),
-      ext_code: workspaceConfig.get('languageServer.extCode'),
-      jpath: jpath,
-      resolve_paths_with_tanka: workspaceConfig.get('languageServer.tankaMode'),
-      enable_lint_diagnostics: workspaceConfig.get('languageServer.lint'),
-      enable_eval_diagnostics: workspaceConfig.get('languageServer.eval'),
-      eval_binary: workspaceConfig.get('languageServer.evalBinary'),
-      formatting: workspaceConfig.get('languageServer.formatting'),
-    },
+    settings: workspaceConfig.get('languageServer.config'),
   });
 }
