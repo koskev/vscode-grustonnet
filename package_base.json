@@ -61,11 +61,11 @@
       },
       {
         "command": "grustonnet.restartLanguageServer",
-        "title": "Jsonnet: Restart Language Server"
+        "title": "Grustonnet: Restart Language Server"
       },
       {
         "command": "grustonnet.debugEditorContents",
-        "title": "Jsonnet: Debug File",
+        "title": "Grustonnet: Debug File",
         "category": "Jsonnet",
         "enablement": "!inDebugMode",
         "icon": "$(debug-alt)"
@@ -128,7 +128,7 @@
         "initialConfigurations": [],
         "configurationSnippets": [
           {
-            "label": "Jsonnet: Debug current file",
+            "label": "Grustonnet: Debug current file",
             "description": "A new configuration for debugging a Jsonnet file.",
             "body": {
               "type": "jsonnet",
