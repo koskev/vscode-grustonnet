@@ -71,32 +71,6 @@
         "icon": "$(debug-alt)"
       }
     ],
-    "languages": [
-      {
-        "id": "jsonnet",
-        "aliases": [
-          "Jsonnet",
-          "jsonnet"
-        ],
-        "extensions": [
-          ".jsonnet",
-          ".libsonnet"
-        ],
-        "configuration": "./language/configuration.jsonc"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "jsonnet",
-        "scopeName": "source.jsonnet",
-        "path": "./language/jsonnet.tmLanguage.json"
-      }
-    ],
-    "breakpoints": [
-      {
-        "language": "jsonnet"
-      }
-    ],
     "debuggers": [
       {
         "type": "jsonnet",
@@ -139,33 +113,7 @@
           }
         ]
       }
-    ],
-    "configuration": {
-      "type": "object",
-      "title": "Grustonnet Plugin Settings",
-      "properties": {
-        "grustonnet.languageServer.releaseRepository": {
-          "type": "string",
-          "default": "koskev/grustonnet-ls",
-          "description": "Github repository to download the language server from"
-        },
-        "grustonnet.languageServer.enableAutoUpdate": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": true
-        },
-        "grustonnet.languageServer.pathToBinary": {
-          "scope": "resource",
-          "type": "string",
-          "description": "Path to language server binary"
-        },
-        "grustonnet.debugger.pathToBinary": {
-          "scope": "resource",
-          "type": "string",
-          "description": "Path to debugger"
-        }
-      }
-    }
+    ]
   },
   "dependencies": {
     "@types/vscode": "^1.69.0",
