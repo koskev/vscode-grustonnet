@@ -65,12 +65,9 @@ function evalCommand(
 
     fs.writeFileSync(tempFile, '"Evaluating..."');
 
-    if (workspace.getConfiguration('grustonnet').get('languageServer.continuousEval') === false) {
-      evalJsonnet(channel, client, params, yaml, tempFile, true);
-    } else {
-      // Initial eval
-      evalJsonnet(channel, client, params, yaml, tempFile, true);
-
+    // Initial eval
+    evalJsonnet(channel, client, params, yaml, tempFile, true);
+    if (workspace.getConfiguration('grustonnet').get('languageServer.continuousEval')) {
       // Watch all jsonnet files, trigger eval on change
       const watcher = workspace.createFileSystemWatcher("**/*.*sonnet", false, false, false);
       watcher.onDidChange((e) => {
