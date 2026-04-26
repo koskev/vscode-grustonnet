@@ -72,7 +72,7 @@ function evalCommand(
       evalJsonnet(channel, client, params, yaml, tempFile, true);
 
       // Watch all jsonnet files, trigger eval on change
-      const watcher = workspace.createFileSystemWatcher("**/*.*sonnet", true, false, true);
+      const watcher = workspace.createFileSystemWatcher("**/*.*sonnet", false, false, false);
       watcher.onDidChange((e) => {
         channel.appendLine(`File changed: ${e.fsPath}, triggering eval`);
         evalJsonnet(channel, client, params, yaml, tempFile, false);
