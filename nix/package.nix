@@ -39,7 +39,7 @@
               nodejs
               vsce
             ];
-            npmDepsHash = "sha256-H/TdGNY7ZBr0ssEQDXoTIbcY3bDhAf+XtM3Jg3xJwiU=";
+            npmDepsHash = "sha256-twz4ojcxUTyrAiZzO4DWnxlPnadcA9cA7Z+kuhtOpeo=";
 
             buildPhase = ''
               npm run compile

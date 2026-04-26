@@ -25,12 +25,12 @@ const ComponentDetails: Record<
   },
 };
 
-export async function install(
+export async function getBinPath(
   context: ExtensionContext,
   channel: OutputChannel,
   component: Component
-): Promise<string | null> {
-  const { binaryName, displayName } = ComponentDetails[component];
+): Promise<string> {
+  const { binaryName } = ComponentDetails[component];
   let binPath: string = workspace.getConfiguration('grustonnet').get(`${component}.pathToBinary`);
   const isCustomBinPath = binPath !== undefined && binPath !== null && binPath !== '';
   if (!isCustomBinPath) {
@@ -51,22 +51,43 @@ export async function install(
     }
   }
 
-  const releaseRepository: string = workspace.getConfiguration('grustonnet').get(`${component}.releaseRepository`);
-
   const binPathExists = fs.existsSync(binPath);
   channel.appendLine(`Binary path is ${binPath} (exists: ${binPathExists})`);
+  return binPath;
+}
 
+// Returns null if the path does not exist
+export async function getBinPathExists(
+  context: ExtensionContext,
+  channel: OutputChannel,
+  component: Component
+): Promise<string | null> {
+  const binPath = await getBinPath(context, channel, component);
+  if (fs.existsSync(binPath)) {
+    return binPath;
+  } else {
+    return null;
+  }
+}
+
+export async function update(
+  context: ExtensionContext,
+  channel: OutputChannel,
+  component: Component
+): Promise<boolean> {
   // Without auto-update, the process ends here.
   const enableAutoUpdate: boolean = workspace.getConfiguration('grustonnet').get(`${component}.enableAutoUpdate`);
   if (!enableAutoUpdate) {
-    if (!binPathExists) {
-      const msg = `The jsonnet ${displayName} binary does not exist, please set either 'grustonnet.${component}.pathToBinary' or 'grustonnet.${component}.enableAutoUpdate'`;
-      channel.appendLine(msg);
-      window.showErrorMessage(msg);
-      return null;
-    }
-    return binPath;
+    return false;
   }
+  const { binaryName, displayName } = ComponentDetails[component];
+  const binPath = await getBinPath(context, channel, component);
+
+  const releaseRepository: string = workspace.getConfiguration('grustonnet').get(`${component}.releaseRepository`);
+
+  const binPathExists = fs.existsSync(binPath);
+  let updated = false;
+
 
   // Check for the latest release in Github
   const releaseUrl = `https://api.github.com/repos/${releaseRepository}/releases/latest`;
@@ -88,20 +109,15 @@ export async function install(
       channel.appendLine(warnMsg);
       channel.appendLine(e);
       window.showWarningMessage(warnMsg);
-      return binPath;
+      return false;
     }
 
     const msg = `Failed to fetch latest release from ${releaseUrl}`;
     channel.appendLine(msg);
     channel.appendLine(e);
 
-    if (!isCustomBinPath) {
-      window.showErrorMessage(msg);
-      throw new Error(msg);
-    }
-
     window.showWarningMessage(msg + '. Continuing with the current version.');
-    return binPath;
+    return false;
   }
   channel.appendLine(`Latest release is ${latestVersion}`);
 
@@ -115,7 +131,7 @@ export async function install(
       'No'
     );
     if (value === 'No') {
-      return null;
+      return false;
     }
     doUpdate = true;
   } else {
@@ -189,18 +205,19 @@ export async function install(
       channel.appendLine(msg);
       channel.appendLine(e);
       window.showErrorMessage(msg);
-      throw new Error(msg);
+      return false;
     }
 
     channel.appendLine(`Successfully downloaded the ${displayName} version ${latestVersion}`);
     window.showInformationMessage(`Successfully installed the ${displayName} version ${latestVersion}`);
+    updated = true;
   } else {
     channel.appendLine(`Not updating the ${displayName}.`);
   }
 
   channel.appendLine(`Binary is at ${binPath}`);
 
-  return binPath;
+  return updated;
 }
 
 function download(uri: any): Promise<Uint8Array> {

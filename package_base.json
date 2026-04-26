@@ -172,7 +172,8 @@
     "vscode-languageclient": "^8.0.0",
     "yaml": "^1.10.2",
     "pako": "^2.1.0",
-    "tarparser": "^0.0.5"
+    "tarparser": "^0.0.5",
+    "async-mutex": "^0.5.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.0",

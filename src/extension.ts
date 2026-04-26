@@ -27,18 +27,33 @@ import {
   LanguageClientOptions,
   ServerOptions,
 } from 'vscode-languageclient/node';
-import { install } from './install';
+import { getBinPathExists, update } from './install';
 import { JsonnetDebugAdapterDescriptorFactory } from './debugger';
+import { Mutex } from 'async-mutex';
 
 let extensionContext: ExtensionContext;
 let client: LanguageClient;
 let channel: OutputChannel;
 const evalFileName = 'jsonnet-eval-result';
 
+const restartMutex = new Mutex();
+
 export async function activate(context: ExtensionContext): Promise<void> {
   channel = window.createOutputChannel('grustonnet plugin');
   extensionContext = context;
 
+  channel.appendLine("Starting update checks...")
+  update(extensionContext, channel, 'languageServer').then((res) => {
+    if (res) {
+      restartClient();
+    }
+  });
+  update(extensionContext, channel, 'debugger').then((res) => {
+    if (res) {
+      installDebugger(context);
+    }
+  });
+  channel.appendLine("Starting client...")
   await startClient();
   await installDebugger(context);
   await didChangeConfigHandler();
@@ -92,14 +107,23 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(
     workspace.onDidChangeConfiguration(didChangeConfigHandler),
-    commands.registerCommand('grustonnet.restartLanguageServer', async function(): Promise<void> {
-      await client.stop();
-      client.outputChannel.dispose();
-      await startClient();
-      await didChangeConfigHandler();
-    }),
+    commands.registerCommand('grustonnet.restartLanguageServer', restartClient),
     commands.registerCommand('grustonnet.evalFile', evalCommand(false)),
   );
+}
+
+async function restartClient() {
+  const release = await restartMutex.acquire();
+  try {
+    // This abomination is used to ignore errors while stopping the client ensuring both functions are called
+    try {
+      await client.stop();
+    } catch { }
+    await startClient();
+    await didChangeConfigHandler();
+  } finally {
+    release();
+  }
 }
 
 function evalCommand(yaml: boolean) {
@@ -211,7 +235,7 @@ export function deactivate(): Thenable<void> | undefined {
 }
 
 async function installDebugger(context: ExtensionContext): Promise<void> {
-  const binPath = await install(extensionContext, channel, 'debugger');
+  const binPath = await getBinPathExists(extensionContext, channel, 'debugger');
   if (!binPath) {
     return;
   }
@@ -220,7 +244,7 @@ async function installDebugger(context: ExtensionContext): Promise<void> {
 
 async function startClient(): Promise<void> {
 
-  const binPath = await install(extensionContext, channel, 'languageServer');
+  const binPath = await getBinPathExists(extensionContext, channel, 'languageServer');
   if (!binPath) {
     channel.appendLine("Binpath is empty. Not starting language server")
     return;
