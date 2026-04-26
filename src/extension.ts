@@ -1,28 +1,20 @@
 import {
   commands,
-  debug,
   window,
   workspace,
   ExtensionContext,
-  Uri,
   OutputChannel,
-  ProviderResult,
-  WorkspaceFolder,
-  DebugConfiguration,
-  DebugConfigurationProviderTriggerKind,
 } from 'vscode';
 
 import {
   DidChangeConfigurationNotification,
   Executable,
-  ExecuteCommandParams,
-  ExecuteCommandRequest,
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
 } from 'vscode-languageclient/node';
 import { getBinPathExists, update } from './install';
-import { JsonnetDebugAdapterDescriptorFactory } from './debugger';
+import { installDebugger, registerDebugger } from './debugger';
 import { Mutex } from 'async-mutex';
 import { registerEvalCommand } from './eval';
 
@@ -44,67 +36,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
   });
   update(extensionContext, channel, 'debugger').then((res) => {
     if (res) {
-      installDebugger(context);
+      installDebugger(context, channel);
     }
   });
   channel.appendLine("Starting client...")
   await startClient();
-  await installDebugger(context);
+  await installDebugger(context, channel);
   await didChangeConfigHandler();
-  context.subscriptions.push(
-    debug.registerDebugConfigurationProvider(
-      'jsonnet',
-      {
-        provideDebugConfigurations(_folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
-          return [
-            {
-              name: 'Debug current Jsonnet file',
-              request: 'launch',
-              type: 'jsonnet',
-              program: '${file}',
-            },
-          ];
-        },
-        async resolveDebugConfiguration(_folder, debugConfiguration, _token) {
-          const params: ExecuteCommandParams = {
-            command: "config.jpaths",
-          };
-          debugConfiguration.jpaths = await client.sendRequest(ExecuteCommandRequest.type, params);
-          params.command = "config.extvars";
-          debugConfiguration.extvars = await client.sendRequest(ExecuteCommandRequest.type, params);
-          params.command = "config.extcode";
-          debugConfiguration.extcode = await client.sendRequest(ExecuteCommandRequest.type, params);
-
-          channel.appendLine(`Starting debugger with ${JSON.stringify(debugConfiguration)}`)
-
-          return debugConfiguration
-
-        },
-      },
-      DebugConfigurationProviderTriggerKind.Dynamic
-    ),
-    commands.registerCommand('grustonnet.debugEditorContents', (resource: Uri) => {
-      let targetResource = resource;
-      if (!targetResource && window.activeTextEditor) {
-        targetResource = window.activeTextEditor.document.uri;
-      }
-      if (targetResource) {
-        debug.startDebugging(undefined, {
-          type: 'jsonnet',
-          name: 'Debug File',
-          request: 'launch',
-          program: targetResource.fsPath,
-        });
-      }
-    })
-  );
 
   context.subscriptions.push(
     workspace.onDidChangeConfiguration(didChangeConfigHandler),
     commands.registerCommand('grustonnet.restartLanguageServer', restartClient),
   );
   registerEvalCommand(context, channel, client);
-
+  registerDebugger(context, channel, client);
 }
 
 async function restartClient() {
@@ -126,14 +71,6 @@ export function deactivate(): Thenable<void> | undefined {
     return undefined;
   }
   return client.stop();
-}
-
-async function installDebugger(context: ExtensionContext): Promise<void> {
-  const binPath = await getBinPathExists(extensionContext, channel, 'debugger');
-  if (!binPath) {
-    return;
-  }
-  debug.registerDebugAdapterDescriptorFactory('jsonnet', new JsonnetDebugAdapterDescriptorFactory(context, binPath));
 }
 
 async function startClient(): Promise<void> {
