@@ -52,7 +52,7 @@ export async function installDebugger(context: ExtensionContext, channel: Output
 export function registerDebugger(
   context: ExtensionContext,
   channel: OutputChannel,
-  client: LanguageClient,
+  getClient: () => LanguageClient,
 ) {
   context.subscriptions.push(
     debug.registerDebugConfigurationProvider(
@@ -72,6 +72,7 @@ export function registerDebugger(
           const params: ExecuteCommandParams = {
             command: "config.jpaths",
           };
+          let client = getClient();
           debugConfiguration.jpaths = await client.sendRequest(ExecuteCommandRequest.type, params);
           params.command = "config.extvars";
           debugConfiguration.extvars = await client.sendRequest(ExecuteCommandRequest.type, params);

@@ -24,6 +24,10 @@ let channel: OutputChannel;
 
 const restartMutex = new Mutex();
 
+function getClient() {
+  return client;
+}
+
 export async function activate(context: ExtensionContext): Promise<void> {
   channel = window.createOutputChannel('grustonnet plugin');
   extensionContext = context;
@@ -48,8 +52,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     workspace.onDidChangeConfiguration(didChangeConfigHandler),
     commands.registerCommand('grustonnet.restartLanguageServer', restartClient),
   );
-  registerEvalCommand(context, channel, client);
-  registerDebugger(context, channel, client);
+  registerEvalCommand(context, channel, getClient);
+  registerDebugger(context, channel, getClient);
 }
 
 async function restartClient() {

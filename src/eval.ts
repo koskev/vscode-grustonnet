@@ -29,17 +29,17 @@ function createTmpFile(yaml: boolean): string {
 export function registerEvalCommand(
   context: ExtensionContext,
   channel: OutputChannel,
-  client: LanguageClient,
+  getClient: () => LanguageClient,
 
 ) {
   context.subscriptions.push(
-    commands.registerCommand('grustonnet.evalFile', evalCommand(channel, client, false)),
+    commands.registerCommand('grustonnet.evalFile', evalCommand(channel, getClient, false)),
   );
 }
 
 function evalCommand(
   channel: OutputChannel,
-  client: LanguageClient,
+  getClient: () => LanguageClient,
   yaml: boolean,
 ) {
   return async () => {
@@ -66,13 +66,13 @@ function evalCommand(
     fs.writeFileSync(tempFile, '"Evaluating..."');
 
     // Initial eval
-    evalJsonnet(channel, client, params, yaml, tempFile, true);
+    evalJsonnet(channel, getClient(), params, yaml, tempFile, true);
     if (workspace.getConfiguration('grustonnet').get('languageServer.continuousEval')) {
       // Watch all jsonnet files, trigger eval on change
       const watcher = workspace.createFileSystemWatcher("**/*.*sonnet", false, false, false);
       watcher.onDidChange((e) => {
         channel.appendLine(`File changed: ${e.fsPath}, triggering eval`);
-        evalJsonnet(channel, client, params, yaml, tempFile, false);
+        evalJsonnet(channel, getClient(), params, yaml, tempFile, false);
       });
 
       // Stop watching when the tab is closed. Only run this once.
