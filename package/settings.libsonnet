@@ -24,6 +24,13 @@ local schema = import '../grustonnet_schema.json';
         type: 'string',
         description: 'Path to debugger',
       },
+      ['%s.languageServer.continuousEval' % name]: {
+        scope: 'resource',
+        type: 'boolean',
+        default: true,
+        description: 'Whether to continuously evaluate the selected file',
+      },
+
     },
   },
   languageServerSettings():: [
