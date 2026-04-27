@@ -1,10 +1,13 @@
 { inputs, ... }:
 
 let
-  inherit (inputs.nix-actions.lib) actions;
   inherit (inputs.nix-actions.lib) steps;
   inherit (inputs.nix-actions.lib) mkBuild;
   inherit (inputs.nix-actions.lib) platforms;
+
+  actions = inputs.nix-actions.lib.actions // {
+    publish-vscode = "HaaLeo/publish-vscode-extension@ca5562daa085dee804bf9f37fe0165785a9b14db"; # v2.0.0
+  };
 in
 {
   imports = [ inputs.actions-nix.flakeModules.default ];
@@ -46,6 +49,14 @@ in
                 name = "changelog";
                 path = "CHANGELOG.md";
                 retention-days = 1;
+              };
+            }
+            {
+              name = "Publish to Open VSX";
+              uses = actions.publish-vscode;
+              "with" = {
+                pat = "\${{ env.OPEN_VSX_TOKEN }}";
+                registryUrl = "https://open-vsx.org";
               };
             }
           ];
