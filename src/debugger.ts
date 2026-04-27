@@ -44,6 +44,7 @@ export class JsonnetDebugAdapterDescriptorFactory implements DebugAdapterDescrip
 export async function installDebugger(context: ExtensionContext, channel: OutputChannel): Promise<void> {
   const binPath = await getBinPathExists(context, channel, 'debugger');
   if (!binPath) {
+    channel.appendLine("Unable to find debugger library")
     return;
   }
   debug.registerDebugAdapterDescriptorFactory('jsonnet', new JsonnetDebugAdapterDescriptorFactory(context, binPath));

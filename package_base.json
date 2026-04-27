@@ -30,13 +30,6 @@
   "main": "./out/extension",
   "contributes": {
     "menus": {
-      "editor/context": [
-        {
-          "command": "grustonnet.evalItem",
-          "group": "navigation",
-          "when": "false"
-        }
-      ],
       "editor/title": [
         {
           "command": "grustonnet.evalFile",
