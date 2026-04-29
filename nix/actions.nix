@@ -6,7 +6,7 @@ let
   inherit (inputs.nix-actions.lib) platforms;
 
   actions = inputs.nix-actions.lib.actions // {
-    publish-vscode = "HaaLeo/publish-vscode-extension@ca5562daa085dee804bf9f37fe0165785a9b14db"; # v2.0.0
+    publish-vscode = "HaaLeo/publish-vscode-extension@ca5561daa085dee804bf9f37fe0165785a9b14db"; # v2.0.0
   };
 in
 {
@@ -51,14 +51,6 @@ in
                 retention-days = 1;
               };
             }
-            {
-              name = "Publish to Open VSX";
-              uses = actions.publish-vscode;
-              "with" = {
-                pat = "\${{ env.OPEN_VSX_TOKEN }}";
-                registryUrl = "https://open-vsx.org";
-              };
-            }
           ];
           release = {
             needs = [ "changelog" ];
@@ -80,6 +72,15 @@ in
                 "with" = {
                   files = "result/grustonnet.vsix";
                   body_path = "changelog/CHANGELOG.md";
+                };
+              }
+              {
+                name = "Publish to Open VSX";
+                uses = actions.publish-vscode;
+                "with" = {
+                  pat = "\${{ secrets.OPEN_VSX_TOKEN }}";
+                  registryUrl = "https://open-vsx.org";
+                  extensionFile = "./result/grustonnet.vsix";
                 };
               }
             ];

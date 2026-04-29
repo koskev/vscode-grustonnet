@@ -24,11 +24,6 @@ jobs:
         name: changelog
         path: CHANGELOG.md
         retention-days: 1
-    - name: Publish to Open VSX
-      uses: HaaLeo/publish-vscode-extension@ca5562daa085dee804bf9f37fe0165785a9b14db
-      with:
-        pat: ${{ env.OPEN_VSX_TOKEN }}
-        registryUrl: https://open-vsx.org
   release:
     needs:
     - changelog
@@ -60,6 +55,12 @@ jobs:
       with:
         body_path: changelog/CHANGELOG.md
         files: result/grustonnet.vsix
+    - name: Publish to Open VSX
+      uses: HaaLeo/publish-vscode-extension@ca5561daa085dee804bf9f37fe0165785a9b14db
+      with:
+        extensionFile: ./result/grustonnet.vsix
+        pat: ${{ secrets.OPEN_VSX_TOKEN }}
+        registryUrl: https://open-vsx.org
 'on':
   push:
     tags:
