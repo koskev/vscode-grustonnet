@@ -93,12 +93,15 @@ export async function update(
   const releaseUrl = `https://api.github.com/repos/${releaseRepository}/releases/latest`;
   channel.appendLine(`Auto-update is enabled. Fetching latest release from ${releaseUrl}`);
 
-  let releaseData: { name?: string } = {};
+  let releaseData: { tag_name?: string } = {};
   let latestVersion = '';
   try {
     const body = await githubApiRequest(releaseUrl);
     releaseData = JSON.parse(body);
-    latestVersion = releaseData.name;
+    latestVersion = releaseData.tag_name;
+    if (latestVersion.length == 0) {
+      throw new Error('Version is empty');
+    }
     if (latestVersion.startsWith('v')) {
       latestVersion = latestVersion.substring(1);
     }
