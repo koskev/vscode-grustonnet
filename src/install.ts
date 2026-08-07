@@ -145,7 +145,7 @@ export async function update(
       const result = execFileSync(binPath, ['--version']);
       const prefix = `${binaryName} `;
       if (result.toString().startsWith(prefix)) {
-        currentVersion = result.toString().substring(prefix.length).trim();
+        currentVersion = result.toString().substring(prefix.length).trim().split("-")[0];
       } else {
         throw new Error('Invalid version string');
       }
